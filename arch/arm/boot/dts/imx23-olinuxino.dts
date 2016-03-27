@@ -134,3 +134,9 @@
 		};
 	};
 };
+
+&pwm {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pwm2_pins_a>;
+	status = "okay";
+};
