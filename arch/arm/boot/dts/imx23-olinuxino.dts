@@ -78,6 +78,11 @@
 				pinctrl-names = "default";
 				pinctrl-0 = <&i2c_pins_b>;
 				status = "okay";
+
+				rtc@51 {
+					compatible = "nxp,pcf8563";
+					reg = <0x51>;
+				};
 			};
 
 			duart: serial@80070000 {
