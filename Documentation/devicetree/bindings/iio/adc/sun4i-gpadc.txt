@@ -1,0 +1,36 @@
+Allwinner SoCs' GPADC Device Tree bindings
+------------------------------------------
+The Allwinner SoCs all have an ADC that can also act as a thermal sensor
+and sometimes as a touchscreen controller.
+
+Required properties:
+  - compatible: "allwinner,sun8i-a33-ths",
+  - reg: mmio address range of the chip,
+  - #thermal-sensor-cells: shall be 0,
+  - #io-channel-cells: shall be 0,
+
+Example:
+	ths: ths@1c25000 {
+		compatible = "allwinner,sun8i-a33-ths";
+		reg = <0x01c25000 0x100>;
+		#thermal-sensor-cells = <0>;
+		#io-channel-cells = <0>;
+	};
+
+sun4i, sun5i and sun6i SoCs are also supported via these bindings:
+
+Required properties:
+ - compatible: "allwinner,sun4i-a10-gpadc", "allwinner,sun5i-a13-gpadc" or
+   "allwinner,sun6i-a31-gpadc"
+ - reg: mmio address range of the chip
+ - interrupts: interrupt to which the chip is connected
+ - #thermal-sensor-cells: shall be 0
+
+Example:
+
+	gpadc: gpadc@1c25000 {
+		compatible = "allwinner,sun4i-a10-gpadc";
+		reg = <0x01c25000 0x100>;
+		interrupts = <29>;
+		#thermal-sensor-cells = <0>;
+	};
