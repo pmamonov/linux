@@ -84,6 +84,8 @@ static int sun8i_h3_ths_resume(struct sun4i_gpadc_iio *info);
 static int sun8i_h3_ths_suspend(struct sun4i_gpadc_iio *info);
 static irqreturn_t sunx8i_h3_irq_thread(int irq, void *data);
 
+static int sun8i_a83t_ths_resume(struct sun4i_gpadc_iio *info);
+
 static const struct gpadc_data sun4i_gpadc_data = {
 	.temp_offset = -1932,
 	.temp_scale = 133,
@@ -156,6 +158,21 @@ static const struct gpadc_data sun8i_h3_ths_data = {
 	.ths_resume = sun8i_h3_ths_resume,
 	.ths_suspend = sun8i_h3_ths_suspend,
 	.ths_irq_clear = SUN8I_H3_THS_INTS_TDATA_IRQ_0,
+};
+
+static const struct gpadc_data sun8i_a83t_ths_data = {
+	.temp_offset = -2724,
+	.temp_scale = -70,
+	.temp_data_base = SUN8I_H3_THS_TDATA0,
+	.ths_irq_thread = sunx8i_h3_irq_thread,
+	.support_irq = true,
+	.sensor_count = 3,
+	.supports_nvmem = true,
+	.ths_resume = sun8i_a83t_ths_resume,
+	.ths_suspend = sun8i_h3_ths_suspend,
+	.ths_irq_clear = SUN8I_H3_THS_INTS_TDATA_IRQ_0 |
+			SUN8I_A83T_THS_INTS_TDATA_IRQ_1 |
+			SUN8I_A83T_THS_INTS_TDATA_IRQ_2,
 };
 
 struct sun4i_sensor_tzd {
@@ -541,6 +558,44 @@ static int sun8i_h3_ths_resume(struct sun4i_gpadc_iio *info)
 	return 0;
 }
 
+static int sun8i_a83t_ths_resume(struct sun4i_gpadc_iio *info)
+{
+	u32 value;
+
+	sun8i_h3_calibrate(info);
+
+	regmap_write(info->regmap, SUN8I_H3_THS_CTRL0,
+			SUN4I_GPADC_CTRL0_T_ACQ(0x13f));
+
+	regmap_write(info->regmap, SUN8I_H3_THS_CTRL2,
+			SUN8I_H3_THS_ACQ1(0x13f));
+
+	regmap_write(info->regmap, SUN8I_H3_THS_STAT,
+			SUN8I_H3_THS_INTS_TDATA_IRQ_0   |
+			SUN8I_A83T_THS_INTS_TDATA_IRQ_1 |
+			SUN8I_A83T_THS_INTS_TDATA_IRQ_2);
+
+	regmap_write(info->regmap, SUN8I_H3_THS_FILTER,
+			SUN4I_GPADC_CTRL3_FILTER_EN |
+			SUN4I_GPADC_CTRL3_FILTER_TYPE(0x2));
+
+	regmap_write(info->regmap, SUN8I_H3_THS_INTC,
+			SUN8I_H3_THS_INTC_TDATA_IRQ_EN0 |
+			SUN8I_A83T_THS_INTC_TDATA_IRQ_EN1 |
+			SUN8I_A83T_THS_INTC_TDATA_IRQ_EN2 |
+			SUN8I_H3_THS_TEMP_PERIOD(0x257));
+
+	regmap_read(info->regmap, SUN8I_H3_THS_CTRL2, &value);
+
+	regmap_write(info->regmap, SUN8I_H3_THS_CTRL2,
+			SUN8I_H3_THS_TEMP_SENSE_EN0   |
+			SUN8I_A83T_THS_TEMP_SENSE_EN1 |
+			SUN8I_A83T_THS_TEMP_SENSE_EN2 |
+			value);
+
+	return 0;
+}
+
 static int sun4i_gpadc_get_temp(void *data, int *temp)
 {
 	struct sun4i_sensor_tzd *tzd = data;
@@ -587,6 +642,10 @@ static const struct of_device_id sun4i_gpadc_of_id[] = {
 	{
 		.compatible = "allwinner,sun8i-h3-ths",
 		.data = &sun8i_h3_ths_data,
+	},
+	{
+		.compatible = "allwinner,sun8i-a83t-ths",
+		.data = &sun8i_a83t_ths_data,
 	},
 	{ /* sentinel */ }
 };
