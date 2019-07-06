@@ -1098,7 +1098,7 @@
 				cpu0_crit: cpu_crit {
 					temperature = <105000>;
 					hysteresis = <2000>;
-					type = "critical";
+					type = "passive";
 				};
 			};
 
@@ -1142,7 +1142,7 @@
 				cpu1_crit: cpu_crit {
 					temperature = <105000>;
 					hysteresis = <2000>;
-					type = "critical";
+					type = "passive";
 				};
 			};
 
